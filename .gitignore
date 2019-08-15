@@ -1,0 +1,8 @@
+nohup.out
+uwsgi.pid
+*.crt
+*.key
+*.pyc
+__pycache__
+.vscode
+config.js
