@@ -27,7 +27,7 @@ class TestingConfig(Config):
 
 class ProductionConfig(Config):
     SQLALCHEMY_DATABASE_URI=os.environ.get('DATABASE_URL') or \
-        'mysql+pymysql://root:password@localhost:3306/data-prod'
+        'mysql+pymysql://root:password.mysql@47.97.20.3:3306/patient'
 
 config={
     'dev':DevelopmentConfig,

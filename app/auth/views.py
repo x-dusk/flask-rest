@@ -23,7 +23,7 @@ def verify_password(username_or_token, password):
 
 
 class new_user(Resource):
-    @myauth.login_required
+    # @myauth.login_required
     def post(self):
         username = request.json['username']
         password = request.json['password']

@@ -11,6 +11,7 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(32), index=True)
     password_hash = db.Column(db.String(128))
+    is_admin = db.Column(db.Integer, comment='超级管理员标识')
     def hash_password(self, password):
         self.password_hash = pwd_context.encrypt(password)
     def verify_password(self, password):
@@ -32,15 +33,12 @@ class User(db.Model):
     def __repr__(self):
         return '<User {}>'.format(self.username)
 
-class Attr(db.Model):
-    __tablename__ = 'attr'
+class Patients(db.Model):
+    __tablename__ = 'patients'
     id = db.Column(db.Integer, primary_key=True)
-    a = db.Column(db.Float, comment='特征A')
-    b = db.Column(db.Float, comment='特征B')
-    c = db.Column(db.Float, comment='特征C')
-    d = db.Column(db.Float, comment='特征D')
-    e = db.Column(db.Float, comment='特征E')
-    y = db.Column(db.Float, comment='目标Y')
+    userId = db.Column(db.String(64), comment='录入用户')
+    hostipal = db.Column(db.String(64), comment='医院')
+    
 
     def __repr__(self):
-        return '<Attr {}>'.format(self.id)
+        return '<Patients {}>'.format(self.id)

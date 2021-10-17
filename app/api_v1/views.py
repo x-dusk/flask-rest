@@ -1,48 +1,72 @@
+from flask.globals import session
 from . import api
 from flask_restful import abort, Resource
 from flask import jsonify,request,redirect,url_for,g,current_app
 import pymysql
 from .commonfunc import *
-from app.models import Attr
+from app.models import Patients,User
 import datetime
 from app import db,myauth
 from sqlalchemy import func,and_
 
-class Attrs(Resource):
+class PatientInfos(Resource):
     """
-    REST风格的对资源的增删改查，Attrs对应数据库中的attr表
+    REST风格的对资源的增删改查，Patients对应数据库中的patients表
     """
+    # def get(self):
+    #     '''
+    #     查询某条数据
+    #     '''
+    #     data=request.values
+    #     try:
+    #         id=data['id']
+    #     except KeyError:
+    #         return abort(400)
+    #     patient=Patients.query.filter_by(id=id).first()
+    #     if patient is None:
+    #         return jsonify(isExist=False,msg='patient id not exist')
+    #     else:
+    #         patient_dict=serialize(patient)
+    #         return jsonify(patient=patient_dict,isExist=True,msg='patient info has been sent successfully')
+    
     def get(self):
         '''
-        查询某条数据
+        查询全部数据
         '''
         data=request.values
         try:
-            id=data['id']
+            userId=data['userId']
         except KeyError:
             return abort(400)
-        attr=Attr.query.filter_by(id=id).first()
-        if attr is None:
-            return jsonify(isExist=False,msg='attr of the id doesnt exist')
+        user = User.query.fliter_by(id=userId).first()
+        if user is None:
+            return jsonify(isExist=False,msg='user id not exist')
+        if user['is_admin'] is not None and user['is_admin'] == 1:
+            patients = Patients.query.all()
         else:
-            attr_dict=serialize(attr)
-            return jsonify(attr=attr_dict,isExist=True,msg='attr has been sent successfully')
+            patients=Patients.query.filter_by(userId=userId).all()
+        if patients is None:
+            return jsonify(isExist=False,msg='patient id not exist')
+        else:
+            patient_dict=serialize(patients)
+            return jsonify(patient=patient_dict,isExist=True,msg='patient info has been sent successfully')
+
     def post(self):
         """
         修改数据
         """
         try:
-            attr=request.json['attr']
+            patient=request.json['patient']
         except KeyError:
             return abort(400)
-        id=attr['id']
-        attr_=Attr.query.filter_by(id=id).first()
-        if attr_ is not None:
-            for key, value in attr.items():
+        id=patient['id']
+        patient_=Patients.query.filter_by(id=id).first()
+        if patient_ is not None:
+            for key, value in patient.items():
                 if key == 'id':
                     continue
-                attr_.__setattr__(key, value)
-            db.session.add(attr_)
+                patient_.__setattr__(key, value)
+            db.session.add(patient_)
             db.session.commit()
             return jsonify(isUpdate=True,msg='update resource success')
         else:
@@ -52,20 +76,24 @@ class Attrs(Resource):
         添加单条数据
         """
         try:
-            attr=request.json['attr']
+            patient=request.json['patient']
         except KeyError:
             return abort(400)
-        id=attr['id']
-        attr_=Attr.query.filter_by(id=id).first()
-        if attr_ is None:
-            attr_=Attr(id=id)
-            for key, value in attr.items():
+        id=patient['id']
+        patient_=Patients.query.filter_by(id=id).first()
+        if patient_ is None:
+            patient_=Patients(id=id)
+            for key, value in patient.items():
                 if key == 'id':
                     continue
-                attr_.__setattr__(key, value)
-            db.session.add(attr_)
+                patient_.__setattr__(key, value)
+            try:
+                if session['username'] is not None:
+                    patient_.__setattr__("userId",session['username'])
+            except Exception:
+                return jsonify(putstatus=False,msg='user not login')
+            db.session.add(patient_)
             db.session.commit()
-            # attr_=Attr(a=attr['a'],b=attr['b'],c=attr['c'],d=attr['d'],e=attr['e'],y=attr['y'])
             return jsonify(putstatus=True,msg='add resource success')
         else:
             return jsonify(putstatus=False,msg='resource has existed')
@@ -77,11 +105,11 @@ class Attrs(Resource):
             id=request.values['id']
         except KeyError:
             return abort(400)
-        attr=Attr.query.filter_by(id=id).first()
-        if attr is None:
-            return jsonify(isDeleted=False,msg='attr of the id doesnt exist')
+        patient=Patients.query.filter_by(id=id).first()
+        if patient is None:
+            return jsonify(isDeleted=False,msg='patient id doesnt exist')
         else:
-            db.session.delete(attr)
+            db.session.delete(patient)
             db.session.commit()
-            return jsonify(isDeleted=True,msg='the attr has been deleted')
+            return jsonify(isDeleted=True,msg='the patient has been deleted')
 
